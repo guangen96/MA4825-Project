@@ -27,6 +27,10 @@ print("Waiting for connection on RFCOMM channel", port)
 
 client_sock, client_info = server_sock.accept()
 print("Accepted connection from", client_info)
+# After connected to device receive data and print data
+# we need to integrate the app we will be developing to the data here
+# We might need another way to bluetooth connect, not sure how the mit app inventor bluetooth connection work, but should work
+# Refer to https://github.com/pybluez/pybluez for more examples and more functions that we can use
 
 try:
     while True:
