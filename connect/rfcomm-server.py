@@ -8,6 +8,7 @@ $Id: rfcomm-server.py 518 2007-08-10 07:20:07Z albert $
 """
 
 import bluetooth
+import time
 
 server_sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
 server_sock.bind(("", bluetooth.PORT_ANY))
@@ -35,9 +36,17 @@ print("Accepted connection from", client_info)
 try:
     while True:
         data = client_sock.recv(1024)
+        data2 = "Hello"
         if not data:
             break
         print("Received", data)
+        if (data == b"Coffee"):
+            time.sleep(2)
+            client_sock.send("Preparing Coffee".encode())
+            time.sleep(2)
+            client_sock.send("Coffee Almost Done".encode())
+            time.sleep(2)
+            client_sock.send("Coffee Order Delivered".encode())
 except OSError:
     pass
 
