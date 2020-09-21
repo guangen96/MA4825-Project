@@ -36,17 +36,36 @@ print("Accepted connection from", client_info)
 try:
     while True:
         data = client_sock.recv(1024)
-        data2 = "Hello"
+        data2 = "coffee hot no"
+# Do we want to implement check for busy arm and queue system for order drink? 
+# We probably can do that by implementing a variable state which stores the number of drinks in queue and run a check
+# For non busy easy. For queue, arm would store the order and return to app queue number etc.
+        drink = data.split()[0]
+        temp = data.split()[1]
+        sugar = data.split()[2]
+
+        print("Received", data, drink, temp, sugar)
         if not data:
             break
-        print("Received", data)
-        if (data == b"Coffee"):
+        
+        # Added timer delay for testing in app, please remove after added sequence for moving arm
+        if drink == b"coffee":
+            print("Run Sequence for moving arm to coffee dispenser")
             time.sleep(2)
             client_sock.send("Preparing Coffee".encode())
+        elif drink == b"tea":
+            print("Run Sequence for moving arm to tea dispenser")
             time.sleep(2)
-            client_sock.send("Coffee Almost Done".encode())
+            client_sock.send("Preparing Tea".encode())
+        else:
+            print("Run Sequence for moving arm to milo dispenser")
             time.sleep(2)
-            client_sock.send("Coffee Order Delivered".encode())
+            client_sock.send("Preparing Milo".encode())
+        # Add if else for temp if needed for ice
+        # Add if else for sugar if needed for ice
+        time.sleep(2)
+        # Sending message to app once drinks are delivered (Please add sequence to move arm to delivery place)
+        client_sock.send("Drink Delivered".encode())
 except OSError:
     pass
 
