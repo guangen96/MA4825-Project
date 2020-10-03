@@ -40,9 +40,9 @@ import armcontrol
 import bluetooth
 import time
 
+
 def main():
     # Defining Dynamixel IDs (Input for control)
-    armcontrol.main()
     # Bluetooth Functions
     server_sock = bluetooth.BluetoothSocket(bluetooth.RFCOMM)
     server_sock.bind(("", bluetooth.PORT_ANY))
@@ -53,7 +53,8 @@ def main():
     uuid = "94f39d29-7d6d-437d-973b-fba39e49d4ee"
 
     bluetooth.advertise_service(server_sock, "SampleServer", service_id=uuid,
-                                service_classes=[uuid, bluetooth.SERIAL_PORT_CLASS],
+                                service_classes=[
+                                    uuid, bluetooth.SERIAL_PORT_CLASS],
                                 profiles=[bluetooth.SERIAL_PORT_PROFILE],
                                 # protocols=[bluetooth.OBEX_UUID]
                                 )
@@ -70,34 +71,44 @@ def main():
     try:
         while True:
             data = client_sock.recv(1024)
-            data2 = "coffee hot no"
-    # Do we want to implement check for busy arm and queue system for order drink? 
-    # We probably can do that by implementing a variable state which stores the number of drinks in queue and run a check
-    # For non busy easy. For queue, arm would store the order and return to app queue number etc.
-            drink = data.split()[0]
-            temp = data.split()[1]
-            sugar = data.split()[2]
-            print("Received", data, drink, temp, sugar)
             if not data:
                 break
-        
-        # Added timer delay for testing in app, please remove after added sequence for moving arm
-            if drink == b"Coffee":
-                print("Run Sequence for moving arm to coffee dispenser")
-                client_sock.send("Preparing Coffee".encode())
-            elif drink == b"tea":
-                print("Run Sequence for moving arm to tea dispenser")
-                time.sleep(2)
-                client_sock.send("Preparing Tea".encode())
-            else:
-                print("Run Sequence for moving arm to milo dispenser")
-                time.sleep(2)
-                client_sock.send("Preparing Milo".encode())
-            # Add if else for temp if needed for ice
-            # Add if else for sugar if needed for ice
-            time.sleep(2)
-            # Sending message to app once drinks are delivered (Please add sequence to move arm to delivery place)
-            client_sock.send("Drink Delivered".encode())
+            print(data)
+    # Do we want to implement check for busy arm and queue system for order drink?
+    # We probably can do that by implementing a variable state which stores the number of drinks in queue and run a check
+    # For non busy easy. For queue, arm would store the order and return to app queue number etc.
+            data = data.decode('utf-8').split("\"")     # Formatting Output
+
+            # Number of drinks
+            n = int((len(data)-1)/6)
+            print("Number of drinks", n)
+            
+            
+            # Formatting Data for use
+            arr =[]
+            for x in range(1, len(data), 2):
+                arr1 = [data[x]]
+                arr = arr + arr1
+                print(arr)          # Array of drinks e.g. [coffee,cold,0%,coffee,cold,0%]
+
+            for x in range (1,n+1):
+                print("Serving Drink ", x, arr[0+3*(x-1)])
+                # Added timer delay for testing in app, please remove after added sequence for moving arm
+                drink = arr[3*(x-1)]
+                temp = arr[3*(x-1) + 1]
+                sugar = arr[3*(x-1) + 2]
+                print("Drink details:", drink, temp, sugar)
+
+                print("Moving arm to ", drink, "dispenser")
+                time.sleep(5)
+                print("Dispensing Drink", x, drink)
+                client_sock.send(("Dispensing Drink " + str(x) + ":" + drink).encode())
+                time.sleep(5)
+                print("Delivering Drink", x, drink)
+                client_sock.send(("Delivering Drink " + str(x) + ":" + drink).encode())
+                time.sleep(5)
+                print("Delivered")
+                client_sock.send(("Drink " + str(x) + " delivered").encode())
     except OSError:
         pass
 
@@ -107,9 +118,11 @@ def main():
     server_sock.close()
     print("All done.")
 
+
 def turn(serial_connection):
     serial_connection.goto(3, 0, speed=512, degrees=True)
     serial_connection.goto(3, 45, speed=512, degrees=True)
+
 
 if __name__ == '__main__':
     main()
